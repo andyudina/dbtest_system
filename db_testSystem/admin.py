@@ -44,18 +44,22 @@ class RKAdmin(admin.ModelAdmin):
     list_editable = ('is_active',)
 admin.site.register(RK, RKAdmin)
 
-class RightAnswerInline(admin.TabularInline):
-    model = RightAnswer
-    extra = 3
-
-
 class AnswerInline(admin.TabularInline):
     model = Answer
     extra = 3
 
 class MultipleRightAnswerQuestionAdmin(admin.ModelAdmin):
-    inlines = [AnswerInline, RightAnswerInline]
+    inlines = [AnswerInline, ]
 admin.site.register(MultipleRightAnswerQuestion, MultipleRightAnswerQuestionAdmin)
+
+class RightAnswerAnswerInline(admin.TabularInline):
+    model = RightAnswer.answers.through
+    extra = 3
+
+class RightAnswerAdmin(admin.ModelAdmin):
+    inlines = [RightAnswerAnswerInline, ]
+admin.site.register(RightAnswer, RightAnswerAdmin)
+
 # admin.site.register(Attempt)
 # admin.site.register(UserSession)
 # admin.site.register(SessionQuestions)

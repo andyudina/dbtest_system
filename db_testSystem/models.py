@@ -163,8 +163,8 @@ class MultipleRightAnswerQuestion(Question):
 
     def get_records(self):
         return map (
-                lambda x: {field: getattr(x, 'field') for field in ['id', 'tex']},
-                self.answer_set.order_by('display_order_number')
+                lambda x: {field: getattr(x, field) for field in ['id', 'text']},
+                self.answers.order_by('display_order_number')
             )
    
     class Meta:
@@ -180,12 +180,18 @@ class Answer(models.Model):
         verbose_name = u'Ответ'
         verbose_name_plural = u'Ответы'
 
+    def __unicode__(self):
+        return self.text
+
 class RightAnswer(models.Model):
     question = models.ForeignKey('MultipleRightAnswerQuestion')
     answers = models.ManyToManyField('Answer', through='AnswerToRightAnswer')    
     
     def get_answer_sequence(self):
         return map( lambda x: x.id,  self.answers.order_by('order_number') )
+
+    def __unicode__(self):
+        return u'Ответ для вопроса №{}'.format(self.question.id)
 
     class Meta:
         verbose_name = u'Правильный ответ'

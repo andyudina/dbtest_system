@@ -124,8 +124,11 @@
     <script type="text/javascript" src="{% static 'javascripts/jquery.form.js' %}"></script>
     <script type="text/javascript" src="{% static 'javascripts/jquery.tweet.js' %}"></script>
     <script type="text/javascript" src="{% static 'javascripts/jquery.form.js' %}"></script>
+    <script type="text/javascript" src="{% static 'javascripts/jquery-ui.js' %}"></script>
     <script type="text/javascript" src="{% static 'javascripts/script.js' %}"></script>
     <script type="text/javascript" src="{% static 'javascripts/switcher.js' %}"></script>
+    {% block customscripts %}
+    {% endblock %}
     <div class="wrapper wrapper-transparent">
         <div class="container-fluid">
             <div class="row-fluid">
