@@ -47,6 +47,8 @@ class QuestionType(models.Model):
     def isNoSQLQuery(self):
         return self.signature == 'noSQL_query'
 
+    def isMultiRightAnswerQuery(self):
+        return self.signature == 'multi_right_answer'
 
 class Question(models.Model):
     type = models.ForeignKey(QuestionType, null=True, blank=True, verbose_name='Тип')
@@ -148,6 +150,51 @@ class UserSession(models.Model):
     running = models.BooleanField(default=True)  # is session running right now?
     registered_at = models.DateTimeField(auto_now_add=True)
 
+class MultipleRightAnswerQuestion(Question):
+    def check_answer(self, answer_string):
+        try:
+            ids = [int(x_) for x in answer_string.split(',')]
+        except ValueError:
+            return False
+        right_answers = [x.get_answer_sequence() for x in self.rightanswer_set.all()]
+        if ids in right_answers:
+            return True
+        return False
+
+    def get_records(self):
+        return map (
+                lambda x: {field: getattr(x, 'field') for field in ['id', 'tex']},
+                self.answer_set.order_by('display_order_number')
+            )
+   
+    class Meta:
+        verbose_name = u'Вопрос с несколькикми правильными ответами (РК2)'
+        verbose_name_plural = u'Вопросы с несколькими правильными ответами (РК2)'
+
+class Answer(models.Model):
+    question = models.ForeignKey('MultipleRightAnswerQuestion', related_name="answers")
+    text = models.TextField(u'Текст ответа')  
+    display_order_number = models.IntegerField(u'Порядковый номер', default=1)
+    
+    class Meta:
+        verbose_name = u'Ответ'
+        verbose_name_plural = u'Ответы'
+
+class RightAnswer(models.Model):
+    question = models.ForeignKey('MultipleRightAnswerQuestion')
+    answers = models.ManyToManyField('Answer', through='AnswerToRightAnswer')    
+    
+    def get_answer_sequence(self):
+        return map( lambda x: x.id,  self.answers.order_by('order_number') )
+
+    class Meta:
+        verbose_name = u'Правильный ответ'
+        verbose_name_plural = u'Правильные ответы'
+
+class AnswerToRightAnswer(models.Model):
+    right_answer = models.ForeignKey('RightAnswer')
+    answer = models.ForeignKey('Answer')
+    order_number = models.IntegerField(default=1)
 
 class SessionQuestions(models.Model):
     session = models.ForeignKey(UserSession)
@@ -192,7 +239,7 @@ class SessionQuestions(models.Model):
                 res.append([s, b])
             return json.dumps(res)
 
-    def check(self):
+    def check_answer(self):
         if self.question.type.isSQLQuery():
             with MySQLReviewer() as reviewer:
                 back = reviewer.execute_double(right_query=self.question.answer, user_query=self.last_answer)
@@ -210,6 +257,8 @@ class SessionQuestions(models.Model):
                 else:
                     bools_str += '0'
             self.is_right = bools_str == self.last_answer
+        elif self.question.type.isMultiRightAnswerQuery(): 
+            self.is_right = self.question.check_answer(self.last_answer)
         self.save()
 
     def last_answer_html(self):

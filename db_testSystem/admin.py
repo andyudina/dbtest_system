@@ -25,7 +25,7 @@ class UserAdmin(admin.ModelAdmin):
     list_display = ('username', 'first_name', 'last_name', 'is_active')
     list_editable = ('is_active',)
     fields = ('username', 'email', 'first_name', 'last_name', 'is_active', 'is_staff', 'is_superuser')
-    inlines = [AttemptInline]
+    inlines = [AttemptInline, ]
 
     # def change_view(self, request, object_id, form_url='', extra_context=None):
     #    return HttpResponseRedirect('/abc')
@@ -44,7 +44,18 @@ class RKAdmin(admin.ModelAdmin):
     list_editable = ('is_active',)
 admin.site.register(RK, RKAdmin)
 
+class RightAnswerInline(admin.TabularInline):
+    model = RightAnswer
+    extra = 3
 
+
+class AnswerInline(admin.TabularInline):
+    model = Answer
+    extra = 3
+
+class MultipleRightAnswerQuestionAdmin(admin.ModelAdmin):
+    inlines = [AnswerInline, RightAnswerInline]
+admin.site.register(MultipleRightAnswerQuestion, MultipleRightAnswerQuestionAdmin)
 # admin.site.register(Attempt)
 # admin.site.register(UserSession)
 # admin.site.register(SessionQuestions)

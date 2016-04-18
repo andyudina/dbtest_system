@@ -69,6 +69,25 @@ $(function(){
         );
 	});
 
+       //РК2 с порядокм полей для индексов
+       $('.ajax-send-answers').click(function(ev) {
+           ev.preventDefault();
+           var selectedIds = [];
+           $('.sortableUserAnswers').find('li').each(function(index, li){
+               selectedIds.push($(li).val());
+           });
+           var url = ['/question/?type=test&testid=', $('#testid').val() , '&queid=', $('#queid').val()].join('');
+           $.post(
+               url,
+               'answer=' + selectedIds.join(','),
+               function(data) {
+                   data = $.parseJSON(data);
+                   if (data.url) {
+                       window.location = data.url;
+                   }
+               }
+           );
+       });
 //Проверка у админа 
     $(".ajax-check-sql-admin").click(function(e) {
         var type_txt = null;

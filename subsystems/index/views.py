@@ -195,7 +195,10 @@ def question(request):
 
     good_ids = False
     try:
-        question = Question.objects.get(id=que_id)
+        try:
+            question = MultipleRightAnswerQuestion.objects.get(id=que_id)
+        except MultipleRightAnswerQuestion.DouesNotExist:
+            question = Question.objects.get(id=que_id)
         rk = RK.objects.get(id=rk_id)
         attempt = Attempt.objects.get(user=request.user, rk=rk)
         user_session = UserSession.objects.get(user=request.user, rk=rk, attempt=attempt.used)
@@ -228,6 +231,10 @@ def question(request):
                 answers_html += '<br/>'
                 count += 1
             form = answers_html
+        elif question.type.isMultiRightAnswerQuery():
+            tmpl = 'test_multirightanswer.html'
+            form = ''
+            context.update({'answers': question.get_records()})
 
         context.update({
             'form': form,
@@ -252,7 +259,7 @@ def question(request):
                 back = reviewer.execute_double(right_query=question.answer, user_query=user_query)
 
             session_question.last_answer = user_query
-            session_question.check()
+            session_question.check_answer()
             session_question.save()
         elif question.type.isTestMultianswer():
             right_answers = question.get_multianswer_bools()
@@ -266,9 +273,13 @@ def question(request):
                     answers += '0'
                 count += 1
             session_question.last_answer = answers
-            session_question.check()
+            session_question.check_answer()
             session_question.save()
-
+        elif question.type.isMultiRightAnswerQuery():
+            session_question.last_answer = request.POST.get('answer', '')
+            session_question.check_answer()
+            session_question.save()
+            return HttpResponse({'url': '/tests/?testid={0}'.format(rk_id)})
         return HttpResponseRedirect('/tests/?testid={0}'.format(rk_id))
     except:
         return HttpResponseRedirect('/')
