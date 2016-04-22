@@ -423,7 +423,7 @@ def logout_view(request):
 @login_required(redirect_field_name='')
 def self_statistic_view(request):
     user_time_update(request.user)
-    user_sessions = UserSession.objects.filter(user=request.user).order_by('rk', 'attempt')
+    user_sessions = UserSession.objects.filter(user=request.user, running=False).order_by('rk', 'attempt')
     user_sessions_output = []
     for usr_sess in user_sessions:
         user_sessions_output.append(UserSessionOutputModel(usr_sess))
