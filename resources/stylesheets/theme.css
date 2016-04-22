@@ -3245,3 +3245,40 @@ ul.inline li {
   -o-animation-name: flash;
   animation-name: flash;
 }
+
+.connectedSortable {
+    border: 1px solid lightgrey;
+    margin: 0;
+}
+
+.connectedSortable li{
+    margin: 2px;
+    padding: 2px;
+    cursor: pointer;
+    list-style-type: none;
+    border: 1px solid gray;
+    border-radius: 3px;
+}
+
+.user-answers {
+    float: right;
+}
+
+#sortableUserAnswers li{
+    background-color: lightblue;
+}
+.answers {
+    float: left;
+}
+#sortableAnswers li {
+    background-color: orange;
+}
+
+.answer-column {
+    width: 350px;
+}
+
+.send-answer-block {
+    clear: both;
+}
+

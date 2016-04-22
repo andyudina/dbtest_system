@@ -1,7 +1,7 @@
 # coding: utf-8
 
 from django.contrib.auth import authenticate, login, logout
-from django.http import HttpResponseRedirect
+from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.core.mail import send_mail
 from forms import *
@@ -197,7 +197,7 @@ def question(request):
     try:
         try:
             question = MultipleRightAnswerQuestion.objects.get(id=que_id)
-        except MultipleRightAnswerQuestion.DouesNotExist:
+        except MultipleRightAnswerQuestion.DoesNotExist:
             question = Question.objects.get(id=que_id)
         rk = RK.objects.get(id=rk_id)
         attempt = Attempt.objects.get(user=request.user, rk=rk)
@@ -279,9 +279,9 @@ def question(request):
             session_question.last_answer = request.POST.get('answer', '')
             session_question.check_answer()
             session_question.save()
-            return HttpResponse({'url': '/tests/?testid={0}'.format(rk_id)})
+            return JsonResponse({'url': '/tests/?testid={0}'.format(rk_id)})
         return HttpResponseRedirect('/tests/?testid={0}'.format(rk_id))
-    except:
+    except Exception as e:
         return HttpResponseRedirect('/')
 
 

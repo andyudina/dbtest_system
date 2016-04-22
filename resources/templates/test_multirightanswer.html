@@ -20,24 +20,24 @@
                 <input type="hidden" id="queid" value="{{ question.id }}"/>
                 <div class="controls controls-row">
                   <div class="control-group span12">
-                      <div class="answers">
+                      <div class="answers answer-column">
                           <p class="user-hint">Варианты ответа</p>
                           <ul id="sortableAnswers" class="connectedSortable">
                               {% for answer in answers %}
-                              <li class="answer-li" data-id="{{ answer.id }}">{{ answer.text }}</li>
+                              <li class="answer-li" value="{{ answer.id }}">{{ answer.text }}</li>
                               {% endfor %}
                           </ul>
                       </div>
-                      <div class="user-answers">
+                      <div class="user-answers answer-column">
                           <p class="user-hint">Перетащи колонки сюда в порядке их задания в индексе</p>
                           <ul id="sortableUserAnswers" class="connectedSortable">
                           </ul>
                       </div>
                   </div>
                 </div>
-                <div class="controls controls-row">
+                <div class="controls controls-row send-answer-block">
                   <div class="control-group span12">
-                    <button id="ajax-send-answers" class="btn btn-primary" name="submitButton" type="submit">
+                    <button class="ajax-send-answers" class="btn btn-primary" name="submitButton" type="submit">
                       Отправить ответ
                     </button>
 
@@ -68,13 +68,6 @@
     <div class="messages"></div>
 {% endblock %}
 {% block customscripts %}
-  <script>
-  $(function() {
-    $( "#sortableAnswers, #sortableUserAnswers" ).sortable({
-      connectWith: ".connectedSortable"
-    }).disableSelection();
-  });
-  </script>
 {% endblock %}
 
 

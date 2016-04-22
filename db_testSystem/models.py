@@ -46,7 +46,7 @@ class QuestionType(models.Model):
 
     def isNoSQLQuery(self):
         return self.signature == 'noSQL_query'
-
+    
     def isMultiRightAnswerQuery(self):
         return self.signature == 'multi_right_answer'
 
@@ -151,13 +151,26 @@ class UserSession(models.Model):
     registered_at = models.DateTimeField(auto_now_add=True)
 
 class MultipleRightAnswerQuestion(Question):
+    def _to_ids_sequence(self, answer_string):
+        def _to_int(x):
+           try:
+               return int(x)
+           except (ValueError, TypeError):
+               pass
+        return [_to_int(x_) for x_ in answer_string.split(',') if x_ is not None]
+
+    def user_sequence(self, answer_string):
+        def _to_answer(answer_id):
+            answer = self.answers.filter(id=answer_id)
+            if answer:
+                return answer[0]
+        ids = self._to_ids_sequence(answer_string)
+        return [_to_answer(id_) for id_ in ids if _to_answer(id_)]
+       
     def check_answer(self, answer_string):
-        try:
-            ids = [int(x_) for x in answer_string.split(',')]
-        except ValueError:
-            return False
+        ids = self._to_ids_sequence(answer_string)
         right_answers = [x.get_answer_sequence() for x in self.rightanswer_set.all()]
-        if ids in right_answers:
+        if ids and ids in right_answers:
             return True
         return False
 
@@ -188,7 +201,8 @@ class RightAnswer(models.Model):
     answers = models.ManyToManyField('Answer', through='AnswerToRightAnswer')    
     
     def get_answer_sequence(self):
-        return map( lambda x: x.id,  self.answers.order_by('order_number') )
+        sequence = [ x.id for x in self.answers.order_by('answertorightanswer__order_number')]
+        return sequence
 
     def __unicode__(self):
         return u'Ответ для вопроса №{}'.format(self.question.id)
@@ -244,6 +258,14 @@ class SessionQuestions(models.Model):
                     pass
                 res.append([s, b])
             return json.dumps(res)
+        elif self.question.type.isMultiRightAnswerQuery():
+            question = MultipleRightAnswerQuestion.objects.get(id=self.question.id)
+            answers = question.user_sequence(self.last_answer)
+            index_list = reduce(lambda sum_, x: ','.join([sum_, x.text]), answers, '')[1:]
+            if index_list:
+               return u'Выбранные столбцы: {}'.format(index_list)
+            return ''
+
 
     def check_answer(self):
         if self.question.type.isSQLQuery():
@@ -264,7 +286,8 @@ class SessionQuestions(models.Model):
                     bools_str += '0'
             self.is_right = bools_str == self.last_answer
         elif self.question.type.isMultiRightAnswerQuery(): 
-            self.is_right = self.question.check_answer(self.last_answer)
+            question = MultipleRightAnswerQuestion.objects.get(id=self.question.id)
+            self.is_right = question.check_answer(self.last_answer)
         self.save()
 
     def last_answer_html(self):
@@ -276,3 +299,4 @@ class SessionQuestions(models.Model):
                 if self.last_answer[i] == '1':
                     res += '{0}. + <br/>'.format(i+1)
             return res
+            

@@ -7,6 +7,29 @@ $(function(){
 		}
 	});	
 
+//CSRF token
+function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie != '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = jQuery.trim(cookies[i]);
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+var csrftoken = getCookie('csrftoken');
+$.ajaxSetup({
+    beforeSend: function(xhr, settings) {
+        xhr.setRequestHeader("X-CSRFToken", csrftoken);
+    }
+});
+
 //Восстановление пароля
     $(".restore_link").click(function() {
 		$(".login_form").css("display","none");
@@ -73,7 +96,7 @@ $(function(){
        $('.ajax-send-answers').click(function(ev) {
            ev.preventDefault();
            var selectedIds = [];
-           $('.sortableUserAnswers').find('li').each(function(index, li){
+           $('#sortableUserAnswers').find('li').each(function(index, li){
                selectedIds.push($(li).val());
            });
            var url = ['/question/?type=test&testid=', $('#testid').val() , '&queid=', $('#queid').val()].join('');
@@ -81,7 +104,6 @@ $(function(){
                url,
                'answer=' + selectedIds.join(','),
                function(data) {
-                   data = $.parseJSON(data);
                    if (data.url) {
                        window.location = data.url;
                    }
@@ -274,3 +296,11 @@ function dataToTable(data, elem, clear) {      //success method
 
 	}
 }
+
+  $(document).ready(function() {
+    $( "#sortableAnswers, #sortableUserAnswers" ).sortable({
+      connectWith: ".connectedSortable"
+    }).disableSelection();
+  });
+
+
